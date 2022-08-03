@@ -24,6 +24,8 @@ orderRouter.get("/:id", async (req, res) => {
             relations: { orderLine: true }
         });
         if (!order) return res.status(404).send("posts not found!");
+        order.completed = true;
+        await order.save();
         res.status(200).send({ data: order });
     } catch (e) {
         res.status(500).send(e);
