@@ -7,7 +7,7 @@ const orderRouter = express.Router();
 orderRouter.get("/", async (req, res) => {
     try {
         const orders = await Order.find({
-            relations: { orderLine: true }
+            relations: { orderLine: { product: true } }
         });
         if (!orders) return res.status(404).send("posts not found!")
         res.status(200).send({ data: orders });
@@ -34,8 +34,9 @@ orderRouter.get("/:id", async (req, res) => {
 
 orderRouter.post("/", async (req, res) => {
     try {
-        const { firstName, lastName, mobNum, city, address, orderDetails } = req.body;
-        if (!firstName || !lastName || !mobNum || !city || !address || !orderDetails) return res.status(401).send("missing data");
+        console.log(req.body);
+        const { firstName, lastName, mobNum, city, address, ordersCart } = req.body;
+        if (!firstName || !lastName || !mobNum || !city || !address || ordersCart.length < 0) return res.status(401).send("missing data");
         const order = Order.create({
             firstName,
             lastName,
@@ -47,11 +48,11 @@ orderRouter.post("/", async (req, res) => {
 
         await order.save();
 
-        for (let i = 0; i < orderDetails.length; i++) {
-            const orderLine = OrderLine.create(
+        for (let i = 0; i < ordersCart?.length; i++) {
+            let orderLine = OrderLine.create(
                 {
-                    quantity: orderDetails[i].quantity,
-                    product: orderDetails[i].product,
+                    quantity: ordersCart[i].quantity,
+                    product: ordersCart[i].id,
                     order
                 }
             )
@@ -60,10 +61,28 @@ orderRouter.post("/", async (req, res) => {
 
         res.status(201).send({ data: order })
     } catch (e) {
+        console.log(e);
         res.status(500).send(e);
     }
 });
 
+orderRouter.patch("/:id", async (req, res) => {
+    const { id } = req.params;
+    if (!id) {
+        return res.status(400).send({ message: "OrderId is required as params!" });
+    }
+    try {
+        const order = await Order.findOne({ where: { id: +id } });
+        if (!order) {
+            return res.status(404).send({ message: "Order is not found!" });
+        }
+        order.completed = true;
+        await order.save();
+        res.send({ order })
+    } catch (e) {
+        res.status(500).send({ error: "Server is down!" });
+    }
+});
 
 orderRouter.delete("/:id", async (req, res) => {
     try {

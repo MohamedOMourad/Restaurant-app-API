@@ -9,6 +9,8 @@ export class Product extends SuperClass {
     @Column()
     description: string
     @Column()
+    imgUrl: string
+    @Column()
     price: number
     @Column({default:false})
     popular: boolean
