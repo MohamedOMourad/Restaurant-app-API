@@ -1,5 +1,5 @@
-import "reflect-metadata";
-import express, { json, urlencoded } from "express";
+import express from "express";
+import { json, urlencoded } from "express";
 import { config } from "dotenv";
 import cors from "cors";
 import morgan from "morgan";
